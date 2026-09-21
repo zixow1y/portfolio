@@ -28,6 +28,12 @@ textarea{resize:vertical;min-height:64px}
 .chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);margin-top:10px}
 details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
 .item{border-top:1px dashed var(--line);margin-top:8px;padding-top:4px}
+.mrow{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 0;border-bottom:1px dotted var(--line)}
+.mrow span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow button{font:inherit;font-size:12px;border:0;border-radius:6px;background:#e6e6e6;color:var(--ink);padding:3px 8px;cursor:pointer}
+.mrow img,.mrow video{width:34px;height:34px;object-fit:cover;border-radius:6px;background:#ddd}
+.up{display:block;margin-top:10px;padding:10px;border:1px dashed #999;border-radius:10px;text-align:center;font-size:13px;color:var(--ink);cursor:pointer;background:#f4f4f4}
+.up input{display:none}
 .hint{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 14px}
 #err{display:none;padding:12px 16px;background:#fff3cd;font-size:13px}
 @media(max-width:900px){.wrap{grid-template-columns:1fr;grid-template-rows:auto 70vh}.form{max-height:50vh}}
@@ -38,13 +44,14 @@ details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
   <h1>미리보기 편집기</h1>
   <span class="msg" id="msg"></span>
   <button class="ghost" id="reset" type="button">처음으로 되돌리기</button>
+  <button class="ghost" id="zip" type="button">사진·영상 포함 zip 받기</button>
   <button id="copy" type="button">config.js 복사</button>
   <button id="dl" type="button">config.js 다운로드</button>
 </div>
 <div id="err"></div>
 <div class="wrap">
   <div class="form" id="form">
-    <p class="hint">왼쪽에서 글자를 고치면 오른쪽에 바로 반영돼요. 마음에 들면 위의 <b>config.js 복사</b>를 눌러 GitHub 의 config.js 에 붙여넣고 Commit 하세요. (이 화면에서 바꾼 내용은 아직 사이트에 저장되지 않아요.)</p>
+    <p class="hint">왼쪽에서 글자를 고치면 오른쪽에 바로 반영돼요. 마음에 들면 위의 <b>config.js 복사</b>를 눌러 GitHub 의 config.js 에 붙여넣고 Commit 하세요. (이 화면에서 바꾼 내용은 아직 사이트에 저장되지 않아요.) 사진·영상을 추가했다면 <b>사진·영상 포함 zip 받기</b>로 받아서 압축을 풀고, 나온 파일과 media 폴더를 GitHub 에 끌어다 올리세요.</p>
   </div>
   <div class="prev"><iframe id="pv" title="미리보기"></iframe></div>
 </div>
@@ -83,6 +90,39 @@ details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
     l.appendChild(c); l.appendChild(document.createTextNode(' ' + label));
     return l;
   }
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function refresh(){ var y = form.scrollTop; build(); form.scrollTop = y; changed(); }
+  function extOf(f){ var e = (f.name.split('.').pop() || '').toLowerCase(); if (e === 'jpeg') e = 'jpg'; return e || (f.type.indexOf('video')===0 ? 'mp4' : 'jpg'); }
+  function addMedia(s, files, mt, isNotice, maxN){
+    s._media = s._media || [];
+    var rejected = 0;
+    Array.prototype.forEach.call(files, function(f){
+      var isV = f.type.indexOf('video') === 0, isI = f.type.indexOf('image') === 0;
+      if (!(isV || isI) || (mt === 'image' && !isI) || (mt === 'video' && !isV) || (isNotice && !isI) || s._media.length >= maxN) { rejected++; return; }
+      s._media.push({file: f, url: URL.createObjectURL(f)});
+    });
+    if (rejected) msg.textContent = rejected + '개 파일은 이 섹션에 넣을 수 없어서 건너뛰었어요 (형식이 다르거나 개수 초과).';
+    refresh();
+  }
+  function materialize(exp){
+    var c = JSON.parse(JSON.stringify(cfg, function(k, v){ return k.charAt(0) === '_' ? undefined : v; }));
+    (cfg.sections || []).forEach(function(s, i){
+      var m = s._media; if (!m || !m.length) return;
+      var d = c.sections[i];
+      var folder = (s.folder || ('media/' + (s.id || 'section'))).replace(/\/$/, '');
+      m.forEach(function(x, j){ x.path = folder + '/' + pad(j+1) + '.' + extOf(x.file); });
+      var isNotice = (s.images !== undefined) || /notice/.test(s.id || '');
+      if (isNotice) { d.images = m.map(function(x){ return exp ? x.path : x.url; }); return; }
+      d.count = m.length; d.folder = folder; delete d.ext;
+      d.items = m.map(function(x, j){
+        var o = {}; var src = (s.items || [])[j] || {}; for (var k in src) o[k] = src[k];
+        o.src = exp ? x.path : x.url;
+        o.type = x.file.type.indexOf('video') === 0 ? 'video' : 'image';
+        return o;
+      });
+    });
+    return c;
+  }
   var toLines = function(s){ return String(s||'').replace(/\n/g,'\\n'); };
 
   function build(){
@@ -113,17 +153,47 @@ details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
       var f = el('fieldset', {}, [el('legend', {text:'섹션 · ' + (s.title||s.id)})]);
       var r = el('div', {'class':'row'});
       r.appendChild(field('섹션 이름', function(){return s.title||'';}, function(v){s.title=v;}));
-      if (s.count != null) r.appendChild(field('사진 개수', function(){return s.count;}, function(v){ var n=parseInt(v,10); if(n>0) s.count=n; }, {number:true,min:1,max:30}));
+      if (s.count != null && !(s._media && s._media.length)) r.appendChild(field('사진 개수', function(){return s.count;}, function(v){ var n=parseInt(v,10); if(n>0) s.count=n; }, {number:true,min:1,max:30}));
       f.appendChild(r);
       f.appendChild(field('설명', function(){return s.subtitle||'';}, function(v){s.subtitle=v;}));
       f.appendChild(check('처음부터 펼쳐두기', function(){return s.open;}, function(v){s.open=v;}));
-      if (s.items && s.items.length) {
-        var d = el('details', {}, [el('summary', {text:'카드 글자 (' + s.items.length + '개)'})]);
-        s.items.forEach(function(item, i){
+      /* 사진·영상 추가 */
+      var isNotice = (s.images !== undefined) || /notice/.test(s.id||'');
+      var mt = s.mediaType || 'any';
+      var maxN = isNotice ? 3 : 30;
+      var accept = isNotice ? 'image/*' : (mt === 'image' ? 'image/*' : (mt === 'video' ? 'video/mp4,video/webm,video/quicktime' : 'image/*,video/mp4,video/webm,video/quicktime'));
+      var kindTxt = isNotice ? '이미지 1~3장' : (mt === 'image' ? '사진(jpg·png·gif·webp)' : (mt === 'video' ? 'MP4 영상' : '사진·GIF·MP4'));
+      var up = el('label', {'class':'up'});
+      up.appendChild(document.createTextNode('＋ 여기에서 ' + kindTxt + ' 추가 (여러 개 선택 가능)'));
+      var fi = el('input', {type:'file', accept: accept, multiple:''});
+      fi.addEventListener('change', function(){ addMedia(s, fi.files, mt, isNotice, maxN); fi.value=''; });
+      up.appendChild(fi);
+      f.appendChild(up);
+      var med = s._media || [];
+      if (med.length) {
+        var ml = el('div', {'style':'margin-top:8px'});
+        med.forEach(function(m, j){
+          var row = el('div', {'class':'mrow'});
+          var th = m.file.type.indexOf('video') === 0 ? el('video', {src:m.url, muted:'', preload:'metadata'}) : el('img', {src:m.url, alt:''});
+          row.appendChild(th);
+          row.appendChild(el('span', {text: pad(j+1) + ' · ' + m.file.name}));
+          var b1 = el('button', {type:'button', text:'↑', title:'위로'}); b1.onclick = function(){ if(j>0){ var t=med[j-1]; med[j-1]=med[j]; med[j]=t; var it=s.items; if(it&&it[j]&&it[j-1]){ var q=it[j-1]; it[j-1]=it[j]; it[j]=q; } refresh(); } };
+          var b2 = el('button', {type:'button', text:'삭제'}); b2.onclick = function(){ URL.revokeObjectURL(m.url); med.splice(j,1); if(s.items) s.items.splice(j,1); refresh(); };
+          row.appendChild(b1); row.appendChild(b2); ml.appendChild(row);
+        });
+        f.appendChild(ml);
+        f.appendChild(el('p', {'class':'hint', 'style':'margin:8px 0 0', text:'추가한 파일은 zip 을 받을 때 media 폴더 안에 번호 순서대로 저장돼요. 추가한 파일이 있으면 위의 사진 개수 대신 이 목록이 기준이에요.'}));
+      }
+      var nCards = med.length || (s.items ? s.items.length : 0);
+      if (!isNotice && nCards) {
+        if (!s.items) s.items = [];
+        while (s.items.length < nCards) s.items.push({});
+        var d = el('details', {}, [el('summary', {text:'카드 글자 (' + nCards + '개)'})]);
+        s.items.slice(0, nCards).forEach(function(item, i){
           var box = el('div', {'class':'item'});
           box.appendChild(field((i+1) + '번 제목', function(){return item.title||'';}, function(v){item.title=v;}));
           box.appendChild(field((i+1) + '번 설명', function(){return item.desc||'';}, function(v){item.desc=v;}));
-          if ('price' in item) box.appendChild(field((i+1) + '번 가격', function(){return item.price||'';}, function(v){item.price=v;}));
+          if (('price' in item) || /adopt/.test(s.id||'')) box.appendChild(field((i+1) + '번 가격', function(){return item.price||'';}, function(v){item.price=v;}));
           d.appendChild(box);
         });
         f.appendChild(d);
@@ -135,12 +205,12 @@ details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
 
   function configText(){
     return '/* 미리보기 편집기로 만든 설정 파일입니다. 이 파일 내용을 GitHub 의 config.js 에 통째로 붙여넣으세요. */\n' +
-      'window.PORTFOLIO = ' + JSON.stringify(cfg, null, 2) + ';\n';
+      'window.PORTFOLIO = ' + JSON.stringify(materialize(true), null, 2) + ';\n';
   }
 
   function render(){
     if (!html) return;
-    var inline = '<script>window.PORTFOLIO = ' + JSON.stringify(cfg).replace(/</g,'\\u003c') + ';<\/script>';
+    var inline = '<script>window.PORTFOLIO = ' + JSON.stringify(materialize(false)).replace(/</g,'\\u003c') + ';<\/script>';
     var base = '<base href="' + location.href.replace(/[^\/]*$/, '') + '">';
     var out = html.replace(/<script src="config\.js"><\/script>/, inline).replace(/<head>/i, '<head>' + base);
     try { lastScroll = pv.contentWindow.scrollY || 0; } catch(e){}
@@ -148,7 +218,7 @@ details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
     pv.srcdoc = out;
   }
   function changed(){
-    try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch(e){}
+    try { localStorage.setItem(KEY, JSON.stringify(cfg, function(k, v){ return k.charAt(0) === '_' ? undefined : v; })); } catch(e){}
     msg.textContent = '고치는 중… (아직 저장 전)';
     clearTimeout(timer); timer = setTimeout(render, 350);
   }
@@ -163,8 +233,42 @@ details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
     var a = el('a', {href: URL.createObjectURL(new Blob([configText()], {type:'text/javascript'})), download:'config.js'});
     document.body.appendChild(a); a.click(); a.remove();
   };
+  function crc32(u8){
+    var t = crc32.t;
+    if (!t) { t = crc32.t = []; for (var n = 0; n < 256; n++) { var c0 = n; for (var k = 0; k < 8; k++) c0 = (c0 & 1) ? (0xEDB88320 ^ (c0 >>> 1)) : (c0 >>> 1); t[n] = c0 >>> 0; } }
+    var c = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) c = t[(c ^ u8[i]) & 255] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  }
+  function makeZip(files){
+    var enc = new TextEncoder(), parts = [], cd = [], off = 0, cdSize = 0;
+    files.forEach(function(f){
+      var nm = enc.encode(f.name), crc = crc32(f.data), sz = f.data.length;
+      var h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(12,0x21,true);
+      h.setUint32(14,crc,true); h.setUint32(18,sz,true); h.setUint32(22,sz,true); h.setUint16(26,nm.length,true);
+      parts.push(h.buffer, nm, f.data);
+      var c = new DataView(new ArrayBuffer(46));
+      c.setUint32(0,0x02014b50,true); c.setUint16(4,20,true); c.setUint16(6,20,true); c.setUint16(8,0x0800,true); c.setUint16(14,0x21,true);
+      c.setUint32(16,crc,true); c.setUint32(20,sz,true); c.setUint32(24,sz,true); c.setUint16(28,nm.length,true); c.setUint32(42,off,true);
+      cd.push(c.buffer, nm); cdSize += 46 + nm.length; off += 30 + nm.length + sz;
+    });
+    var e = new DataView(new ArrayBuffer(22));
+    e.setUint32(0,0x06054b50,true); e.setUint16(8,files.length,true); e.setUint16(10,files.length,true); e.setUint32(12,cdSize,true); e.setUint32(16,off,true);
+    return new Blob(parts.concat(cd, [e.buffer]), {type:'application/zip'});
+  }
+  document.getElementById('zip').onclick = function(){
+    msg.textContent = 'zip 만드는 중…';
+    var enc = new TextEncoder(), c = materialize(true), files = [{name:'config.js', data: enc.encode(configText())}], jobs = [];
+    (cfg.sections || []).forEach(function(s){ (s._media || []).forEach(function(m){ jobs.push(m.file.arrayBuffer().then(function(buf){ files.push({name: m.path, data: new Uint8Array(buf)}); })); }); });
+    Promise.all(jobs).then(function(){
+      var a = el('a', {href: URL.createObjectURL(makeZip(files)), download:'portfolio-update.zip'});
+      document.body.appendChild(a); a.click(); a.remove();
+      msg.textContent = 'zip 을 받았어요. 압축을 풀고 안의 파일들을 GitHub 에 올리세요.';
+    });
+  };
   document.getElementById('reset').onclick = function(){
     if (!confirm('지금까지 고친 내용을 지우고 처음 상태로 되돌릴까요?')) return;
+    (cfg.sections||[]).forEach(function(s){ (s._media||[]).forEach(function(m){ URL.revokeObjectURL(m.url); }); });
     cfg = JSON.parse(JSON.stringify(ORIGINAL));
     try { localStorage.removeItem(KEY); } catch(e){}
     build(); render(); msg.textContent = '처음 상태로 되돌렸어요.';
