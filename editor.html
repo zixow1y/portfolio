@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>미리보기 편집기</title>
+<style>
+:root{--bg:#eeeeee;--panel:#fff;--ink:#2f2f2f;--muted:#666;--line:#dcdcdc;--accent:#505050}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink);background:var(--bg);display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bar h1{font-size:16px;margin:0 auto 0 0}
+.bar button{font:inherit;font-size:14px;padding:9px 16px;border:0;border-radius:999px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}
+.bar button.ghost{background:#e6e6e6;color:var(--ink)}
+.bar .msg{font-size:13px;color:var(--muted)}
+.wrap{flex:1;min-height:0;display:grid;grid-template-columns:380px 1fr}
+.form{overflow:auto;padding:16px;background:var(--panel);border-right:1px solid var(--line)}
+.prev{min-width:0;padding:12px}
+.prev iframe{width:100%;height:100%;border:1px solid var(--line);border-radius:12px;background:#fff}
+fieldset{border:1px solid var(--line);border-radius:12px;margin:0 0 14px;padding:12px 14px}
+legend{font-weight:700;font-size:14px;padding:0 6px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input[type=text],input[type=number],textarea{width:100%;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fafafa;color:var(--ink)}
+textarea{resize:vertical;min-height:64px}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.chk{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);margin-top:10px}
+details{margin-top:10px}summary{cursor:pointer;font-size:13px;font-weight:700}
+.item{border-top:1px dashed var(--line);margin-top:8px;padding-top:4px}
+.hint{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 14px}
+#err{display:none;padding:12px 16px;background:#fff3cd;font-size:13px}
+@media(max-width:900px){.wrap{grid-template-columns:1fr;grid-template-rows:auto 70vh}.form{max-height:50vh}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>미리보기 편집기</h1>
+  <span class="msg" id="msg"></span>
+  <button class="ghost" id="reset" type="button">처음으로 되돌리기</button>
+  <button id="copy" type="button">config.js 복사</button>
+  <button id="dl" type="button">config.js 다운로드</button>
+</div>
+<div id="err"></div>
+<div class="wrap">
+  <div class="form" id="form">
+    <p class="hint">왼쪽에서 글자를 고치면 오른쪽에 바로 반영돼요. 마음에 들면 위의 <b>config.js 복사</b>를 눌러 GitHub 의 config.js 에 붙여넣고 Commit 하세요. (이 화면에서 바꾼 내용은 아직 사이트에 저장되지 않아요.)</p>
+  </div>
+  <div class="prev"><iframe id="pv" title="미리보기"></iframe></div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  var ORIGINAL = JSON.parse(JSON.stringify(window.PORTFOLIO));
+  var cfg = JSON.parse(JSON.stringify(ORIGINAL));
+  var KEY = 'portfolio-editor-draft';
+  try { var saved = localStorage.getItem(KEY); if (saved) cfg = JSON.parse(saved); } catch(e){}
+  var pv = document.getElementById('pv'), form = document.getElementById('form'), msg = document.getElementById('msg');
+  var html = null, timer = null, lastScroll = 0;
+
+  function el(tag, attrs, kids){
+    var n = document.createElement(tag);
+    for (var k in (attrs||{})) { if (k==='text') n.textContent = attrs[k]; else n.setAttribute(k, attrs[k]); }
+    (kids||[]).forEach(function(c){ n.appendChild(c); });
+    return n;
+  }
+  function field(label, get, set, opts){
+    opts = opts || {};
+    var wrap = el('div');
+    wrap.appendChild(el('label', {text: label}));
+    var inp = opts.multi ? el('textarea') : el('input', {type: opts.number ? 'number' : 'text'});
+    if (opts.number) { inp.min = opts.min || 0; if (opts.max) inp.max = opts.max; }
+    inp.value = get();
+    inp.addEventListener('input', function(){ set(inp.value); changed(); });
+    wrap.appendChild(inp);
+    return wrap;
+  }
+  function check(label, get, set){
+    var l = el('label', {'class':'chk'});
+    var c = el('input', {type:'checkbox'}); c.checked = !!get();
+    c.addEventListener('change', function(){ set(c.checked); changed(); });
+    l.appendChild(c); l.appendChild(document.createTextNode(' ' + label));
+    return l;
+  }
+  var toLines = function(s){ return String(s||'').replace(/\n/g,'\\n'); };
+
+  function build(){
+    Array.prototype.slice.call(form.querySelectorAll('fieldset')).forEach(function(n){ n.remove(); });
+    var site = cfg.site = cfg.site || {};
+    var fs = el('fieldset', {}, [el('legend', {text:'맨 위 · 스튜디오 이름'})]);
+    fs.appendChild(field('스튜디오 이름', function(){return site.title||'';}, function(v){site.title=v;}));
+    fs.appendChild(field('한 줄 설명', function(){return site.subtitle||'';}, function(v){site.subtitle=v;}));
+    if (site.cta) {
+      var r = el('div', {'class':'row'});
+      r.appendChild(field('버튼 글자', function(){return site.cta.label||'';}, function(v){site.cta.label=v;}));
+      r.appendChild(field('버튼 주소', function(){return site.cta.url||'';}, function(v){site.cta.url=v;}));
+      fs.appendChild(r);
+    }
+    form.appendChild(fs);
+
+    if (cfg.intro) {
+      var it = cfg.intro;
+      var f2 = el('fieldset', {}, [el('legend', {text:'소개 칸'})]);
+      f2.appendChild(field('작은 글씨 (제목 위)', function(){return it.eyebrow||'';}, function(v){it.eyebrow=v;}));
+      f2.appendChild(field('소개 제목 (줄바꿈은 엔터)', function(){return it.title||'';}, function(v){it.title=v;}, {multi:true}));
+      f2.appendChild(field('부가 설명 (줄바꿈은 엔터)', function(){return it.desc||'';}, function(v){it.desc=v;}, {multi:true}));
+      f2.appendChild(field('태그 (쉼표로 구분)', function(){return (it.tags||[]).join(', ');}, function(v){it.tags = v.split(',').map(function(s){return s.trim();}).filter(Boolean);}));
+      form.appendChild(f2);
+    }
+
+    (cfg.sections||[]).forEach(function(s){
+      var f = el('fieldset', {}, [el('legend', {text:'섹션 · ' + (s.title||s.id)})]);
+      var r = el('div', {'class':'row'});
+      r.appendChild(field('섹션 이름', function(){return s.title||'';}, function(v){s.title=v;}));
+      if (s.count != null) r.appendChild(field('사진 개수', function(){return s.count;}, function(v){ var n=parseInt(v,10); if(n>0) s.count=n; }, {number:true,min:1,max:30}));
+      f.appendChild(r);
+      f.appendChild(field('설명', function(){return s.subtitle||'';}, function(v){s.subtitle=v;}));
+      f.appendChild(check('처음부터 펼쳐두기', function(){return s.open;}, function(v){s.open=v;}));
+      if (s.items && s.items.length) {
+        var d = el('details', {}, [el('summary', {text:'카드 글자 (' + s.items.length + '개)'})]);
+        s.items.forEach(function(item, i){
+          var box = el('div', {'class':'item'});
+          box.appendChild(field((i+1) + '번 제목', function(){return item.title||'';}, function(v){item.title=v;}));
+          box.appendChild(field((i+1) + '번 설명', function(){return item.desc||'';}, function(v){item.desc=v;}));
+          if ('price' in item) box.appendChild(field((i+1) + '번 가격', function(){return item.price||'';}, function(v){item.price=v;}));
+          d.appendChild(box);
+        });
+        f.appendChild(d);
+      }
+      if (s.notes) f.appendChild(field('주의 문구 (한 줄에 하나)', function(){return s.notes.join('\n');}, function(v){s.notes=v.split('\n').filter(function(x){return x.trim();});}, {multi:true}));
+      form.appendChild(f);
+    });
+  }
+
+  function configText(){
+    return '/* 미리보기 편집기로 만든 설정 파일입니다. 이 파일 내용을 GitHub 의 config.js 에 통째로 붙여넣으세요. */\n' +
+      'window.PORTFOLIO = ' + JSON.stringify(cfg, null, 2) + ';\n';
+  }
+
+  function render(){
+    if (!html) return;
+    var inline = '<script>window.PORTFOLIO = ' + JSON.stringify(cfg).replace(/</g,'\\u003c') + ';<\/script>';
+    var base = '<base href="' + location.href.replace(/[^\/]*$/, '') + '">';
+    var out = html.replace(/<script src="config\.js"><\/script>/, inline).replace(/<head>/i, '<head>' + base);
+    try { lastScroll = pv.contentWindow.scrollY || 0; } catch(e){}
+    pv.onload = function(){ try { pv.contentWindow.scrollTo(0, lastScroll); } catch(e){} };
+    pv.srcdoc = out;
+  }
+  function changed(){
+    try { localStorage.setItem(KEY, JSON.stringify(cfg)); } catch(e){}
+    msg.textContent = '고치는 중… (아직 저장 전)';
+    clearTimeout(timer); timer = setTimeout(render, 350);
+  }
+
+  document.getElementById('copy').onclick = function(){
+    var t = configText();
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){ msg.textContent = '복사됐어요! GitHub config.js 에 붙여넣으세요.'; }, function(){
+      var ta = el('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); msg.textContent = '복사됐어요! GitHub config.js 에 붙여넣으세요.';
+    });
+  };
+  document.getElementById('dl').onclick = function(){
+    var a = el('a', {href: URL.createObjectURL(new Blob([configText()], {type:'text/javascript'})), download:'config.js'});
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+  document.getElementById('reset').onclick = function(){
+    if (!confirm('지금까지 고친 내용을 지우고 처음 상태로 되돌릴까요?')) return;
+    cfg = JSON.parse(JSON.stringify(ORIGINAL));
+    try { localStorage.removeItem(KEY); } catch(e){}
+    build(); render(); msg.textContent = '처음 상태로 되돌렸어요.';
+  };
+
+  build();
+  fetch('index.html').then(function(r){ return r.text(); }).then(function(t){ html = t; render(); }).catch(function(){
+    var e = document.getElementById('err'); e.style.display = 'block';
+    e.textContent = '미리보기를 불러오지 못했어요. 파일을 더블클릭해서 여는 대신, GitHub Pages 주소(…github.io/portfolio/editor.html)로 열어주세요.';
+  });
+})();
+</script>
+</body>
+</html>
