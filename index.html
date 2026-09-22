@@ -279,7 +279,8 @@ dialog.lb::backdrop{background:rgba(8,7,5,.92)}
     lbBody.innerHTML = '';
     var node;
     if (kind(it) === 'video') {
-      node = el('video',{controls:'',autoplay:'',loop:'',playsinline:''});
+      node = el('video',{controls:'',autoplay:'',loop:'',playsinline:'',muted:''});
+      node.muted = true;   // 영상 소리 항상 끄기 (전체화면 보기)
       if (it.poster) node.poster = it.poster;
       node.src = it.src;
     } else { node = el('img',{alt:it.title||''}); node.src = it.src; }
