@@ -178,7 +178,8 @@ window.PORTFOLIO = {
       "subtitle": "의뢰시 확인 부탁 드립니다",
       "open": false,
       "images": [
-        "media/notice/01.png"
+        "media/notice/01.png",
+        "media/notice/02.png"
       ],
       "imageRatio": "4/5"
     }
