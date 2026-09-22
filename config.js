@@ -91,6 +91,24 @@ window.PORTFOLIO = {
       ]
     },
     {
+      "id": "texture",
+      "title": "텍스쳐",
+      "subtitle": "이미지 작업물",
+      "open": false,
+      "mediaType": "image",
+      "columns": 4,
+      "ratio": "1/1",
+      "count": 1,
+      "folder": "media/texture",
+      "ext": "jpg",
+      "items": [
+        {
+          "src": "media/texture/01.png",
+          "type": "image"
+        }
+      ]
+    },
+    {
       "id": "poing-eye",
       "title": "뽀잉눈",
       "subtitle": "예시입니다 제작시 맞춤제작 합니다!",
