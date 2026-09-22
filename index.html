@@ -252,12 +252,18 @@ dialog.lb::backdrop{background:rgba(8,7,5,.92)}
   }, {threshold:.25}) : null;
 
   /* 공통: 이미지/영상 노드 만들기 */
+  /* 영상은 항상 무음: 방문자가 컨트롤의 음소거 해제를 눌러도 바로 다시 무음으로 되돌림 */
+  function lockMute(v){
+    v.muted = true;
+    v.addEventListener('volumechange', function(){ if (!v.muted) v.muted = true; });
+    return v;
+  }
   function makeNode(it, o){
     o = o || {};
     if (!it.src) return placeholder('파일 없음');
     if (kind(it) === 'video') {
       var v = el('video',{muted:'',loop:'',playsinline:'',preload: o.thumb ? 'metadata' : 'auto'});
-      v.muted = true; v.loop = true; v.playsInline = true;
+      lockMute(v); v.loop = true; v.playsInline = true;
       if (o.controls) v.controls = true;
       if (it.poster) v.poster = it.poster;
       v.src = o.thumb && !it.poster ? it.src + '#t=0.1' : it.src;
@@ -280,7 +286,7 @@ dialog.lb::backdrop{background:rgba(8,7,5,.92)}
     var node;
     if (kind(it) === 'video') {
       node = el('video',{controls:'',autoplay:'',loop:'',playsinline:'',muted:''});
-      node.muted = true;   // 영상 소리 항상 끄기 (전체화면 보기)
+      lockMute(node);   // 영상 소리 항상 끄기 (전체화면 보기, 음소거 해제 눌러도 다시 꺼짐)
       if (it.poster) node.poster = it.poster;
       node.src = it.src;
     } else { node = el('img',{alt:it.title||''}); node.src = it.src; }
