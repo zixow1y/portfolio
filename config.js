@@ -99,18 +99,6 @@ window.PORTFOLIO = {
       ],
     },
     {
-      id: "texture",
-      title: "텍스쳐",
-      subtitle: "이미지 작업물",
-      open: false,
-      mediaType: "image",          // 이미지 전용
-      columns: 4,
-      ratio: "1/1",
-      count: 8,                    // ← 카드 개수
-      folder: "media/texture",     // media/texture/01.jpg ~ 08.jpg
-      ext: "jpg",
-    },
-    {
       id: "poing-eye",
       title: "뽀잉눈",
       subtitle: "뽀잉눈 작업물",
