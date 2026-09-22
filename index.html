@@ -452,7 +452,7 @@ dialog.lb::backdrop{background:rgba(8,7,5,.92)}
     panel.firstChild.appendChild(body);
     if (sec.images && sec.images.length) {
       var ng = el('div',{'class':'notice-grid'});
-      ng.style.setProperty('--n', Math.min(sec.images.length, 3));
+      ng.style.setProperty('--n', 1);
       ng.style.setProperty('--nr', sec.imageRatio || '4/5');
       sec._list.forEach(function(it, i){
         var nb = el('button',{'class':'notice-card',type:'button','aria-label':'이미지 '+(i+1)+' 크게 보기'});
