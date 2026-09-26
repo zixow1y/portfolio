@@ -98,12 +98,20 @@ window.PORTFOLIO = {
       "mediaType": "image",
       "columns": 4,
       "ratio": "1/1",
-      "count": 1,
+      "count": 3,
       "folder": "media/texture",
       "ext": "jpg",
       "items": [
         {
           "src": "media/texture/01.png",
+          "type": "image"
+        },
+        {
+          "src": "media/texture/02.png",
+          "type": "image"
+        },
+        {
+          "src": "media/texture/03.png",
           "type": "image"
         }
       ]
