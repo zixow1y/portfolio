@@ -196,7 +196,7 @@ window.PORTFOLIO = {
       "mediaType": "image",
       "columns": 3,
       "ratio": "4/5",
-      "count": 2,
+      "count": 4,
       "folder": "media/unity-photo",
       "ext": "png",
       "items": [
@@ -206,6 +206,14 @@ window.PORTFOLIO = {
         },
         {
           "src": "media/unity-photo/02.png",
+          "type": "image"
+        },
+        {
+          "src": "media/unity-photo/03.png",
+          "type": "image"
+        },
+        {
+          "src": "media/unity-photo/04.png",
           "type": "image"
         }
       ]
