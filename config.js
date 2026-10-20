@@ -179,8 +179,8 @@ window.PORTFOLIO = {
       "ext": "jpg",
       "items": [
         {
-          "title": "준비중입니다",
-          "desc": "",
+          "title": "원본[Airi]",
+          "desc": "헤어, 옷, 페이셜 수정, 뽀잉눈 등 부가사항 추가 가능",
           "price": "",
           "link": "#",
           "src": "media/adopt/01.png",
