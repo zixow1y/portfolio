@@ -49,6 +49,29 @@ window.PORTFOLIO = {
       { "src": "media/faces/04.png", "title": "" }
     ]
   },
+  /* 보유 아바타 목록. 사진은 media/avatars/번호.png, link 에 BOOTH 주소를 넣으면 "BOOTH 보기 ↗" 가 나타나요. */
+  "ownedAvatars": {
+    "title": "보유 아바타",
+    "lead": "현재 작업 가능한 보유 아바타 목록입니다. 목록에 없는 아바타는 신물로 보내주셔야 작업이 가능합니다.",
+    "items": [
+      { "name": "카구야", "src": "media/avatars/01.png", "link": "" },
+      { "name": "시오", "src": "media/avatars/02.png", "link": "" },
+      { "name": "모에", "src": "media/avatars/03.png", "link": "" },
+      { "name": "마누카", "src": "media/avatars/04.png", "link": "" },
+      { "name": "밀티나", "src": "media/avatars/05.png", "link": "" },
+      { "name": "시나노", "src": "media/avatars/06.png", "link": "" },
+      { "name": "아이리", "src": "media/avatars/07.png", "link": "" },
+      { "name": "마요", "src": "media/avatars/08.png", "link": "" },
+      { "name": "밀피", "src": "media/avatars/09.png", "link": "" },
+      { "name": "에쿠", "src": "media/avatars/10.png", "link": "" },
+      { "name": "초콜렛", "src": "media/avatars/11.png", "link": "" },
+      { "name": "플럼", "src": "media/avatars/12.png", "link": "" },
+      { "name": "셀레스티아", "src": "media/avatars/13.png", "link": "" },
+      { "name": "미사키", "src": "media/avatars/14.png", "link": "" },
+      { "name": "루미나", "src": "media/avatars/15.png", "link": "" },
+      { "name": "루루네", "src": "media/avatars/16.png", "link": "" }
+    ]
+  },
   "portfolioTitle": "포트폴리오",
   "portfolioLead": "",
   "sections": [
@@ -117,23 +140,6 @@ window.PORTFOLIO = {
       "ext": "mp4",
       "items": [
         { "title": "", "desc": "", "src": "media/poing-eye/01.mp4", "type": "video" }
-      ]
-    },
-    {
-      "id": "owned-avatar",
-      "title": "보유아바타",
-      "tab": "보유 아바타",
-      "subtitle": "현재 보유 중인 아바타",
-      "mediaType": "image",
-      "columns": 1,
-      "ratio": "16/9",
-      "fit": "contain",
-      "count": 2,
-      "folder": "media/owned",
-      "ext": "jpg",
-      "items": [
-        { "title": "", "desc": "", "src": "media/owned/01.png", "type": "image" },
-        { "src": "media/owned/02.png", "type": "image" }
       ]
     },
     {
@@ -226,22 +232,234 @@ window.PORTFOLIO = {
     "lead": "옵션을 고르면 선택 내역을 바로 정리해 드려요.",
     "currency": "원",
     "checkedAt": "",
-    "kinds": [
-      { "id": "plastic", "label": "성형",        "desc": "", "price": null },
-      { "id": "facial",  "label": "페이셜",      "desc": "", "price": null },
-      { "id": "both",    "label": "성형+페이셜", "desc": "", "price": null },
-      { "id": "debut",   "label": "데뷔 세트",   "desc": "", "price": null }
-    ],
-    "platforms": [
-      { "id": "vrc", "label": "VRC", "price": null },
-      { "id": "vrm", "label": "VRM", "price": null },
-      { "id": "vsf", "label": "VSF", "price": null }
-    ],
-    "addons": [
-      { "id": "texture", "label": "텍스처",         "desc": "", "price": null },
-      { "id": "rush",    "label": "빠른 마감",      "desc": "", "price": null },
-      { "id": "revise",  "label": "추가 수정",      "desc": "", "price": null },
-      { "id": "unity",   "label": "유니티 사진 촬영", "desc": "리뷰 작성 시 1장 무료 촬영", "price": null }
+    /* 아트머그 메뉴판 그대로. price(원) 대신 percent 를 쓰면 "전체 주문금액의 n%" 추가금, price 를 비우면 "문의", unit 이 있으면 개수를 고를 수 있어요, header 는 선택 못 하는 안내 줄이에요. */
+    "menu": [
+      {
+        "id": "debut",
+        "label": "데뷔세트",
+        "options": [
+          {
+            "label": "블렌더 성형 + ARkit 52가지 페이셜 + VRM 세팅 + VSF 기본 세팅 + 헤어1 + 의상1",
+            "price": 320000
+          },
+          {
+            "label": "원화기반 블렌더 성형 + ARkit 52가지 페이셜 + VRM 세팅 + VSF 기본 세팅 + 헤어1 + 의상1",
+            "price": 350000
+          }
+        ]
+      },
+      {
+        "id": "own",
+        "label": "개인작 구매",
+        "options": [
+          {
+            "label": "[Airi] 분양 아바타 섹션 참고바랍니다 !",
+            "price": 350000
+          }
+        ]
+      },
+      {
+        "id": "plastic",
+        "label": "성형",
+        "options": [
+          {
+            "label": "유니티 성형",
+            "price": 70000
+          },
+          {
+            "label": "블렌더 성형",
+            "price": 100000
+          },
+          {
+            "label": "블렌더 성형(원화 기반)",
+            "price": 130000
+          }
+        ]
+      },
+      {
+        "id": "facial",
+        "label": "페이셜",
+        "options": [
+          {
+            "label": "ARkit 52가지 페이셜",
+            "price": 220000
+          },
+          {
+            "label": "페이셜 완성 후 수정",
+            "price": 70000
+          },
+          {
+            "label": "고난이도 페이셜(세모 입, 토끼입 등)",
+            "price": 50000
+          }
+        ]
+      },
+      {
+        "id": "vrm",
+        "label": "VRM",
+        "options": [
+          {
+            "label": "VRM 기본 세팅 (기본 페이셜 세팅, mtoon 변환 등)",
+            "price": 30000
+          }
+        ]
+      },
+      {
+        "id": "vsf",
+        "label": "VSF",
+        "options": [
+          {
+            "label": "VSF 기본 세팅 (시뮬레이션, 콜라이더 등)",
+            "price": 50000
+          }
+        ]
+      },
+      {
+        "id": "vrc",
+        "label": "VRC",
+        "options": [
+          {
+            "label": "=== VRC 레벨 New User 이상만 업로드 가능합니다 ===",
+            "header": true
+          },
+          {
+            "label": "== 적어둔 것 외에는 VSF아바타 추가금들과 동일합니다 ==",
+            "header": true
+          },
+          {
+            "label": "VRC 아바타 (유니티 성형 + 헤어1 + 의상1 + 밝기조절/셰이더 + 표정뚫림 수정)",
+            "price": 80000
+          },
+          {
+            "label": "오마카세 VRC 아바타 (유니티 성형 + 보유중인 헤어1 + 보유중인 의상1 + 밝기조절/셰이더 + 표정뚫림 수정)",
+            "price": 100000
+          },
+          {
+            "label": "원화기반 VRC 아바타 (블렌더 성형 + 헤어1 + 의상1 + 밝기조절/셰이더 + 표정뚫림 수정)",
+            "price": 130000
+          },
+          {
+            "label": "전용 헤어 또는 전용 의상 추가(옷장 포함)",
+            "price": 10000
+          },
+          {
+            "label": "악세사리 추가(귀, 꼬리, 네일 등)",
+            "price": 5000
+          },
+          {
+            "label": "헤어, 의상 뚫림 방지 컬라이더",
+            "price": 30000
+          }
+        ]
+      },
+      {
+        "id": "ddu",
+        "label": "뚜따",
+        "options": [
+          {
+            "label": "바디 뚜따 ex) A헤드 + B바디",
+            "price": 30000
+          },
+          {
+            "label": "의상 뚜따 ex) A의상 상의 + B의상 하의",
+            "price": 20000
+          },
+          {
+            "label": "헤어 뚜따 ex) A헤어 앞머리 + B헤어 뒷머리",
+            "price": 20000
+          }
+        ]
+      },
+      {
+        "id": "extra",
+        "label": "추가",
+        "options": [
+          {
+            "label": "전용 헤어 추가(옷장 미포함)",
+            "price": 10000
+          },
+          {
+            "label": "비전용 헤어 추가(옷장 미포함)",
+            "price": 15000
+          },
+          {
+            "label": "전용 의상 추가(옷장 미포함)",
+            "price": 20000
+          },
+          {
+            "label": "악세사리 추가 (귀, 꼬리, 네일 등)",
+            "price": 10000
+          },
+          {
+            "label": "뽀잉눈(말랑눈) 추가",
+            "price": 30000
+          },
+          {
+            "label": "동물 귀 애니메이션 추가",
+            "price": 20000
+          },
+          {
+            "label": "옷장 추가(의상 또는 헤어가 2개 이상일 경우)",
+            "price": 5000
+          }
+        ]
+      },
+      {
+        "id": "rush",
+        "label": "빠른 마감",
+        "options": [
+          {
+            "label": "=== 문의 부탁드립니다! ===",
+            "header": true
+          },
+          {
+            "label": "빠른 마감(3-4일) 전체 주문금액의 50% 추가금",
+            "percent": 50
+          },
+          {
+            "label": "당일 마감 전체 주문금액의 75% 추가금",
+            "percent": 75
+          }
+        ]
+      },
+      {
+        "id": "etc",
+        "label": "기타",
+        "options": [
+          {
+            "label": "유니티 패키지 추가",
+            "price": 50000
+          },
+          {
+            "label": "포트폴리오 영구 비공개",
+            "price": 50000
+          },
+          {
+            "label": "버추얼 아바타를 VRC아바타로 사용 가능하게 변경 (가격 변동 O)",
+            "price": 50000
+          },
+          {
+            "label": "VRC아바타를 버츄얼 아바타로 사용 가능하게 변경 << 문의",
+            "price": null
+          }
+        ]
+      },
+      {
+        "id": "photo",
+        "label": "유니티 사진 촬영",
+        "options": [
+          {
+            "label": "오마카세 포즈 장당",
+            "price": 5000,
+            "unit": "장"
+          },
+          {
+            "label": "자율 커스텀 포즈 장당",
+            "price": 10000,
+            "unit": "장"
+          }
+        ]
+      }
     ],
     "notes": [
       "모델 상태나 세부 작업 범위에 따라 금액이 달라질 수 있어요.",

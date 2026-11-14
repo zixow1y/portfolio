@@ -393,7 +393,7 @@ button,input,textarea,select{font-family:inherit}
 .face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block}
 .face .tagba{position:absolute;left:8px;top:8px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;background:rgba(255,255,255,.88);color:var(--gold)}
 .face.after .tagba{background:var(--gold);color:#fff}
-.face .cap{position:absolute;left:0;right:0;bottom:0;padding:22px 8px 8px;background:linear-gradient(180deg,transparent,rgba(74,26,42,.72));color:#fff;font-size:13px;font-weight:700;text-align:center;word-break:keep-all}
+.face .cap,.media .cap{position:absolute;left:0;right:0;bottom:0;padding:22px 8px 8px;background:linear-gradient(180deg,transparent,rgba(74,26,42,.72));color:#fff;font-size:13px;font-weight:700;text-align:center;word-break:keep-all}
 @media (max-width:640px){.faces-grid{gap:18px}.ba{gap:8px}.face{max-width:none}}
 .sec-head p:empty{display:none}
 
@@ -405,6 +405,33 @@ button,input,textarea,select{font-family:inherit}
 .tab-arrow svg{width:22px;height:22px}
 @media (max-width:560px){.tabrow{gap:8px}.tab-arrow{width:38px;height:38px}.tab-arrow svg{width:18px;height:18px}.tab{padding:0 16px;min-height:42px;font-size:15px}}
 
+
+/* ---- 보유 아바타 ---- */
+.owned{padding-top:24px}
+.own-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;max-width:800px;margin:0 auto}
+.own{text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:0;padding:3px 3px 9px;border:1px solid var(--edge);border-radius:12px;background:#fff;text-align:center;min-width:0;box-shadow:0 6px 16px rgba(138,44,71,.08);transition:transform .25s ease,box-shadow .25s ease}
+a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18)}
+.own-pic{position:relative;display:block;width:100%;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,#F8D6CC,#EBA9BC)}
+.own-pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.own-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(16px,2.2vw,24px);font-weight:700;color:rgba(255,255,255,.9)}
+.own-name{margin-top:9px;font-size:11px;font-weight:700;color:var(--ivory);word-break:keep-all}
+.own-link{margin-top:4px;max-width:100%;font-size:9px;font-weight:700;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:clip;color:var(--gold);opacity:.75}
+@media (max-width:1000px){.own-grid{grid-template-columns:repeat(6,minmax(0,1fr));max-width:640px}}
+@media (max-width:560px){.own-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.own{padding:2px 2px 7px}.own-name{margin-top:7px}.own-name{font-size:10px}.own-link{font-size:8px}}
+
+/* ---- 아트머그 메뉴판 (드롭다운) ---- */
+.menu{display:flex;flex-direction:column}
+.mrow{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;align-items:start;padding:14px 0;border-bottom:1px solid var(--line)}
+.mrow:last-child{border-bottom:0}
+.mlab{padding-top:10px;font-weight:700;color:var(--ivory);word-break:keep-all}
+.mcol{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mline{display:flex;align-items:center;gap:8px;min-width:0}
+.mline select{flex:1 1 auto;min-width:0;width:100%;padding:10px 12px;border:1px solid var(--edge);border-radius:12px;background:#fff;color:var(--ivory);font:inherit;font-size:14px;text-overflow:ellipsis}
+.mline select:focus{outline:2px solid var(--edge-hi);outline-offset:1px}
+.mline .qty{flex:none;width:64px;padding:9px 8px;border:1px solid var(--edge);border-radius:12px;font:inherit;text-align:center}
+.mline .unit{flex:none;color:var(--muted);font-size:14px}
+.mcol .more{align-self:flex-start;padding:6px 12px;border:1px dashed var(--edge-hi);border-radius:999px;background:transparent;color:var(--gold);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+@media (max-width:640px){.mrow{grid-template-columns:minmax(0,1fr);gap:6px}.mlab{padding-top:0}}
 
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}.wv>i{animation:none}.card:hover,.btn:hover{transform:none}.card:hover .media img,.card:hover .media video{transform:none}}
 </style>
@@ -456,6 +483,11 @@ button,input,textarea,select{font-family:inherit}
       <button type="button" class="tab-arrow" id="tabNext" aria-label="다음 분야 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     </div>
     <div id="tabPanel" role="tabpanel" tabindex="-1"></div>
+  </section>
+
+  <section class="wrap sec owned" id="owned" hidden>
+    <div class="sec-head" data-eb="OWNED AVATARS"><h2 id="owTitle"></h2><p id="owLead"></p></div>
+    <div class="own-grid" id="ownGrid"></div>
   </section>
 
   <section class="wrap sec adopt" id="adopt" hidden>
@@ -713,6 +745,28 @@ button,input,textarea,select{font-family:inherit}
     })(pi);
   }
 
+  /* ---------- 보유 아바타 (이름 + 사진 + BOOTH 링크) ---------- */
+  var ow = cfg.ownedAvatars || {}, owItems = (ow.items || []).filter(function(a){ return a && (a.name || a.src); });
+  if (owItems.length) {
+    $('#owned').hidden = false;
+    $('#owTitle').textContent = ow.title || '보유 아바타'; $('#owLead').textContent = ow.lead || '';
+    owItems.forEach(function(a, i){
+      var link = a.link ? String(a.link) : '';
+      var card = el(link ? 'a' : 'div', link ? {'class':'own',href:link,target:'_blank',rel:'noopener noreferrer'} : {'class':'own'});
+      var pic = el('span',{'class':'own-pic'});
+      var ph = function(){ pic.innerHTML = ''; pic.appendChild(el('span',{'class':'own-ph',text:(a.name || '?').charAt(0)})); };
+      if (a.src) {
+        var img = el('img',{alt:a.name || '', loading:'lazy', decoding:'async'}), tried = 0, orig = a.src, th = thumbOf({ src: a.src });
+        img.addEventListener('error', function(){ if (!tried && th !== orig) { tried = 1; img.src = orig; } else ph(); });
+        img.src = th; pic.appendChild(img);
+      } else ph();
+      card.appendChild(pic);
+      card.appendChild(el('strong',{'class':'own-name',text:a.name || ''}));
+      if (link) card.appendChild(el('span',{'class':'own-link',text:(a.linkLabel || 'BOOTH 보기') + ' ↗'}));
+      $('#ownGrid').appendChild(card);
+    });
+  }
+
   function resolveItems(sec){
     var mt = sec.mediaType, list = [];
     if (sec.images && sec.images.length) return sec.images.map(function(src, i){ return { src: src, title: '의뢰 안내 ' + (i + 1), type: 'image' }; });
@@ -741,12 +795,13 @@ button,input,textarea,select{font-family:inherit}
     box.appendChild(node);
     if (kind(it) === 'video' && io && node.tagName === 'VIDEO') { io.observe(node); observed.push(node); }
     if (it.compare) box.appendChild(el('span',{'class':'badge',text:'전 · 후 비교'}));
+    if (it.title && !sec.standalone) box.appendChild(el('span',{'class':'cap',text:it.title}));
     box.addEventListener('click', function(){ openLightbox(list, list.indexOf(it)); });
     card.appendChild(box);
     var hasLink = it.link && it.link !== '#';
-    if (it.title || it.desc || it.price || hasLink) {
+    if ((it.title && sec.standalone) || it.desc || it.price || hasLink) {
       var meta = el('div',{'class':'meta'});
-      if (it.title) meta.appendChild(el('h3',{text:it.title}));
+      if (it.title && sec.standalone) meta.appendChild(el('h3',{text:it.title}));
       if (it.desc) meta.appendChild(el('p',{text:it.desc}));
       if (it.price) meta.appendChild(el('p',{'class':'price',text:it.price}));
       if (hasLink) { var a = el('a',{text:'자세히 보기 →'}); setLink(a, it.link); meta.appendChild(a); }
@@ -876,10 +931,56 @@ button,input,textarea,select{font-family:inherit}
   function money(n){ return Number(n).toLocaleString('ko-KR') + cur; }
   function isNum(v){ return typeof v === 'number' && isFinite(v); }
   var kinds = pr.kinds || [], plats = pr.platforms || [], addons = pr.addons || [];
-  var anyPrice = [].concat(kinds, plats, addons).some(function(o){ return isNum(o.price); });
-  var st = { kind: kinds.length ? kinds[0].id : null, plat: [], add: [] };
+  var menu = pr.menu || [];
+  var anyPrice = [].concat(kinds, plats, addons).some(function(o){ return isNum(o.price); }) || menu.some(function(g){ return (g.options || []).some(function(o){ return isNum(o.price) || isNum(o.percent); }); });
+  var st = { menu: {} };
+  function optText(o){
+    if (isNum(o.percent)) return o.label;
+    return o.label + (isNum(o.price) ? ' ( ' + Number(o.price).toLocaleString('ko-KR') + cur + ' )' : (o.header ? '' : ' ( 문의 )'));
+  }
+  function slots(g){ return st.menu[g.id] || (st.menu[g.id] = [ { i: -1, q: 1 } ]); }
+  var menuBox = null;
+  function buildMenu(){
+    if (!menuBox) { menuBox = el('div',{'class':'menu'}); form.appendChild(menuBox); }
+    menuBox.innerHTML = '';
+    menu.forEach(function(g){
+      var row = el('div',{'class':'mrow'});
+      row.appendChild(el('div',{'class':'mlab',text:g.label}));
+      var col = el('div',{'class':'mcol'});
+      var ss = slots(g);
+      ss.forEach(function(sl, si){
+        var line = el('div',{'class':'mline'});
+        var sel = el('select',{'aria-label':g.label + ' 선택'});
+        sel.appendChild(el('option',{value:'-1',text:'선택하세요.'}));
+        (g.options || []).forEach(function(o, oi){
+          var op = el('option',{value:String(oi),text:optText(o)});
+          if (o.header) op.disabled = true;
+          sel.appendChild(op);
+        });
+        sel.value = String(sl.i);
+        sel.addEventListener('change', function(){ sl.i = parseInt(sel.value, 10); sl.q = 1; if (sl.i < 0 && ss.length > 1) ss.splice(si, 1); buildMenu(); refreshAll(); });
+        line.appendChild(sel);
+        var o = sl.i > -1 ? g.options[sl.i] : null;
+        if (o && o.unit) {
+          var q = el('input',{type:'number',min:'1',max:'99',value:String(sl.q),'class':'qty','aria-label':'개수'});
+          q.addEventListener('input', function(){ var n = parseInt(q.value, 10); sl.q = (isNaN(n) || n < 1) ? 1 : Math.min(99, n); refreshAll(); });
+          line.appendChild(q); line.appendChild(el('span',{'class':'unit',text:o.unit}));
+        }
+        col.appendChild(line);
+      });
+      if (ss.every(function(s){ return s.i > -1; })) {
+        var more = el('button',{type:'button','class':'more',text:'＋ ' + g.label + ' 하나 더 고르기'});
+        more.addEventListener('click', function(){ ss.push({ i: -1, q: 1 }); buildMenu(); });
+        col.appendChild(more);
+      }
+      row.appendChild(col); menuBox.appendChild(row);
+    });
+  }
+
+  st.kind = kinds.length ? kinds[0].id : null; st.plat = []; st.add = [];
   var form = $('#estForm');
   form.appendChild(el('h3',{'class':'bt'},[ el('span',{'class':'no',text:'01'}), document.createTextNode('작업 항목 선택') ]));
+  if (menu.length) buildMenu();
 
   function group(title, hint, type, items, getOn, toggle){
     var fs = el('fieldset',{'class':'fs'});
@@ -908,6 +1009,18 @@ button,input,textarea,select{font-family:inherit}
     var k = find(kinds, st.kind); if (k) rows.push({ k:'작업 종류', label:k.label, price:k.price });
     st.plat.forEach(function(id){ var p = find(plats,id); if (p) rows.push({ k:'플랫폼', label:p.label, price:p.price }); });
     st.add.forEach(function(id){ var a = find(addons,id); if (a) rows.push({ k:'추가 옵션', label:a.label, price:a.price }); });
+    var pct = [], sub = 0;
+    menu.forEach(function(g){
+      slots(g).forEach(function(sl){
+        if (sl.i < 0) return;
+        var o = g.options[sl.i]; if (!o || o.header) return;
+        if (isNum(o.percent)) { var r0 = { k:g.label, label:o.label, price:null, pct:o.percent }; rows.push(r0); pct.push(r0); return; }
+        var q = o.unit ? sl.q : 1, r = { k:g.label, label:o.label + (o.unit ? ' × ' + q + o.unit : ''), price: isNum(o.price) ? o.price * q : null };
+        if (isNum(r.price)) sub += r.price;
+        rows.push(r);
+      });
+    });
+    pct.forEach(function(r){ r.price = Math.round(sub * r.pct / 100); });
     return rows;
   }
   /* 신청 정보 입력칸 (config.form 에서 글자 수정) */
@@ -922,6 +1035,15 @@ button,input,textarea,select{font-family:inherit}
   });
   if (!fields.length) $('#applyBox').hidden = true;
   function summaryText(rows){
+    if (menu.length) {
+      var tt = totals(rows), L = [ pr.copyIntro || '[견적 문의]' ];
+      if (!rows.length) L.push('선택한 항목: 없음');
+      rows.forEach(function(r){ L.push(r.k + ': ' + r.label + (isNum(r.price) ? ' (' + money(r.price) + ')' : ' (문의)')); });
+      if (anyPrice && rows.length) L.push('예상 금액: ' + money(tt.sum) + (tt.unknown ? ' (+ 상담 후 확정 ' + tt.unknown + '개 항목)' : ''));
+      fields.forEach(function(f){ var v = (f._el.value || '').trim(); L.push('', '▪ ' + (f.label||'') + ':' + (v ? '\n' + v : ' ')); });
+      if (!fields.length && pr.copyFooter) L.push('', pr.copyFooter);
+      return L.join('\n');
+    }
     var kRow = rows.filter(function(r){return r.k==='작업 종류';})[0];
     var pl = rows.filter(function(r){return r.k==='플랫폼';}).map(function(r){return r.label;});
     var ad = rows.filter(function(r){return r.k==='추가 옵션';}).map(function(r){return r.label;});
@@ -981,7 +1103,7 @@ button,input,textarea,select{font-family:inherit}
   }
   agree.addEventListener('change', gate); gate();
   rst.addEventListener('click', function(){
-    st.kind = kinds.length ? kinds[0].id : null; st.plat = []; st.add = [];
+    st.kind = kinds.length ? kinds[0].id : null; st.plat = []; st.add = []; st.menu = {}; if (menu.length) buildMenu();
     fields.forEach(function(f){ f._el.value = ''; });
     agree.checked = false; gate(); refreshAll(); toast('선택 내용을 처음 상태로 되돌렸어요');
   });
@@ -996,7 +1118,7 @@ button,input,textarea,select{font-family:inherit}
   var notes = (pr.notes || []).slice();
   if (pr.checkedAt) notes.push('금액 기준일: ' + pr.checkedAt);
   notes.forEach(function(t){ $('#estNotes').appendChild(el('li',{text:t})); });
-  if (kinds.length || plats.length || addons.length) refreshAll(); else $('#estimate').hidden = true;
+  if (kinds.length || plats.length || addons.length || menu.length) refreshAll(); else $('#estimate').hidden = true;
 
   /* ---------- 후기 ---------- */
   var revs = (cfg.reviews || []).filter(function(r){ return r && r.text; });
@@ -1034,6 +1156,7 @@ button,input,textarea,select{font-family:inherit}
   var navItems = [];
   if (!$('#process').hidden) navItems.push(['진행 과정','process']);
   navItems.push(['포트폴리오','portfolio']);
+  if (!$('#owned').hidden) navItems.push(['보유 아바타','owned']);
   if (adoptItems) navItems.push(['분양','adopt']);
   if (!$('#estimate').hidden) navItems.push(['견적','estimate']);
   if (faqs.length) navItems.push(['질문','faq']);
