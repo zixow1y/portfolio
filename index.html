@@ -509,7 +509,6 @@ a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18
         <div class="total" aria-live="polite"><div class="k">예상 합계</div><div class="v" id="totalV"></div><div class="sub" id="totalSub"></div></div>
         <label class="agree"><input type="checkbox" id="agree"><span id="agreeTx"></span></label>
         <a class="btn" id="askBtn"></a>
-        <button type="button" class="btn ghost" id="copyBtn"></button>
         <button type="button" class="btn ghost reset" id="resetBtn">처음부터 다시 선택</button>
         <ul class="notes" id="estNotes"></ul>
       </aside>
@@ -955,6 +954,7 @@ a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18
         (g.options || []).forEach(function(o, oi){
           var op = el('option',{value:String(oi),text:optText(o)});
           if (o.header) op.disabled = true;
+          if (isNum(o.percent)) { op.setAttribute('data-pct', String(o.percent)); op.setAttribute('data-label', o.label); }
           sel.appendChild(op);
         });
         sel.value = String(sl.i);
@@ -1065,6 +1065,12 @@ a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18
   function refreshAll(){
     form.querySelectorAll('label.opt').forEach(function(l){ l._sync(); });
     var rows = current(), box = $('#lines'); box.innerHTML = '';
+    if (menuBox) {
+      var base = 0; rows.forEach(function(r){ if (!r.pct && isNum(r.price)) base += r.price; });
+      menuBox.querySelectorAll('option[data-pct]').forEach(function(op){
+        op.textContent = op.getAttribute('data-label') + '  →  + ' + money(Math.round(base * Number(op.getAttribute('data-pct')) / 100));
+      });
+    }
     if (!rows.length) box.appendChild(el('li',{},[ el('span',{text:'선택한 항목이 없어요'}) ]));
     rows.forEach(function(r){
       var right = (anyPrice && isNum(r.price)) ? el('span',{'class':'amt',text:money(r.price)}) : el('span',{text: anyPrice ? '상담 후 안내' : ''});
@@ -1091,15 +1097,14 @@ a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(res, legacy); else legacy();
     });
   }
-  var ask = $('#askBtn'), cp = $('#copyBtn');
-  ask.textContent = pr.button || '이 구성으로 아트머그에 문의하기';
+  var ask = $('#askBtn');
+  ask.textContent = pr.button || '복사하여 문의하기';
   setLink(ask, (ct.url || ctaUrl));
-  cp.textContent = pr.copyButton || '선택 내용만 복사';
   var agree = $('#agree'), rst = $('#resetBtn');
   $('#agreeTx').textContent = pr.agree || '의뢰 전 확인사항을 읽었어요';
   function gate(){
     var ok = agree.checked;
-    ask.setAttribute('aria-disabled', ok ? 'false' : 'true'); cp.disabled = !ok;
+    ask.setAttribute('aria-disabled', ok ? 'false' : 'true');
   }
   agree.addEventListener('change', gate); gate();
   rst.addEventListener('click', function(){
@@ -1111,10 +1116,7 @@ a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18
     if (!agree.checked) { e.preventDefault(); return; }
     copyText(summaryText(current())).then(function(){ toast('선택 내용을 복사했어요. 아트머그 문의 글에 붙여넣어 주세요'); }, function(){ toast('복사하지 못했어요. 선택 내용을 직접 적어 주세요'); });
   });
-  cp.addEventListener('click', function(){
-    if (!agree.checked) return;
-    copyText(summaryText(current())).then(function(){ toast('선택 내용을 복사했어요'); }, function(){ toast('복사하지 못했어요'); });
-  });
+
   var notes = (pr.notes || []).slice();
   if (pr.checkedAt) notes.push('금액 기준일: ' + pr.checkedAt);
   notes.forEach(function(t){ $('#estNotes').appendChild(el('li',{text:t})); });

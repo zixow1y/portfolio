@@ -468,8 +468,7 @@ window.PORTFOLIO = {
     "copyIntro": "[SWORDMASTER 견적 문의]",
     "copyFooter": "원하는 분위기 / 참고 이미지 / 희망 일정:",
     "agree": "의뢰 전 확인사항을 읽었어요",
-    "button": "이 구성으로 아트머그에 문의하기",
-    "copyButton": "선택 내용만 복사"
+    "button": "복사하여 문의하기"
   },
 
   /* ---- 신청 정보 입력칸 ----
