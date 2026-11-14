@@ -235,6 +235,7 @@ window.PORTFOLIO = {
         {
           "src": "media/texture/02.png",
           "type": "image",
+          "compare": true,
           "title": "얼굴 텍스쳐"
         },
         {
@@ -246,6 +247,7 @@ window.PORTFOLIO = {
         {
           "src": "media/texture/04.png",
           "type": "image",
+          "compare": true,
           "title": "얼굴 텍스쳐"
         },
         {
