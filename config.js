@@ -36,7 +36,7 @@ window.PORTFOLIO = {
     "lead": "같은 아바타여도 정반대의 분위기 연출과 \n확실한 성형 전 후 ",
     "items": [
       {
-        "src": "media/faces/01.png",
+        "src": "media/avatars/06.jpg",
         "title": "shinano"
       },
       {
@@ -44,7 +44,7 @@ window.PORTFOLIO = {
         "title": ""
       },
       {
-        "src": "media/faces/03.png",
+        "src": "media/avatars/06.jpg",
         "title": "shinano"
       },
       {
