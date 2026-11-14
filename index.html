@@ -688,7 +688,7 @@ a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18
   }
   window.addEventListener('message', function(e){
     var d = e.data; if (!d || d.type !== 'portfolio-viewport' || e.source !== window.parent) return;
-    vp = { top: Math.max(0, Number(d.top) || 0), h: Math.max(300, Number(d.height) || 0) }; applyVp();
+    vp = { top: Math.max(0, Number(d.top) || 0), h: Math.max(300, Number(d.height) || 0) }; applyVp(); try{ window.dispatchEvent(new CustomEvent('vpchange',{detail:vp})); }catch(_){}
   });
   window.addEventListener('resize', syncTall);
   syncTall();
@@ -1286,14 +1286,32 @@ a.own:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(138,44,71,.18
       if(fc.parentNode!==host) host.appendChild(fc);
     }
   }
+  var sx=0,sy=0,curTop=0,seen=false;
+  function put(x,y){ fc.style.transform='translate('+(x-1)+'px,'+(y-1)+'px)'; }
+  var pm=false,pend=null,raf=0; /* pm: 아트머그(부모 창)가 칼을 대신 그려 주는 방식 */
+  function post(on){
+    if(!raf){ raf=requestAnimationFrame(function(){ raf=0; var m=pend; pend=null; if(m) try{ window.parent.postMessage({type:'portfolio-mouse',x:m.x,y:m.y,on:m.on},'*'); }catch(_){} }); }
+    pend={x:sx,y:sy+curTop,on:on};
+  }
   function mv(e){
+    sx=e.clientX; sy=e.clientY-curTop; seen=true; /* sy = 화면 기준 높이 */
+    if(pm){ fc.classList.remove('on'); post(true); return; }
     lift();
-    fc.style.transform='translate('+(e.clientX-1)+'px,'+(e.clientY-1)+'px)';
+    put(sx,sy+curTop);
     fc.classList.add('on');
   }
+  window.addEventListener('message',function(e){
+    var d=e.data; if(!d||d.type!=='portfolio-viewport'||e.source!==window.parent) return;
+    if(d.cursor&&!pm){ pm=true; fc.classList.remove('on'); }
+  });
+  /* 휠로 스크롤하면 마우스는 안 움직여도 화면 기준 위치는 그대로이므로 칼을 다시 맞춥니다 */
+  window.addEventListener('vpchange',function(e){
+    curTop=(e.detail&&e.detail.top)||0;
+    if(seen) put(sx,sy+curTop);
+  });
   document.addEventListener('mousemove',mv,true);
   document.addEventListener('mouseover',mv,true);
-  root.addEventListener('mouseleave',function(){fc.classList.remove('on')});
+  root.addEventListener('mouseleave',function(){fc.classList.remove('on'); if(pm) post(false);});
   window.addEventListener('blur',function(){fc.classList.remove('on')});
 })();
 </script>
